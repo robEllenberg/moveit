@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(moveit_core)
 
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Warnings
 add_definitions(-Wall -Wextra
