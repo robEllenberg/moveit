@@ -40,7 +40,8 @@
 #include <moveit/py_bindings_tools/serialize_msg.h>
 #include <moveit/robot_state/conversions.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+// #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <tf_conversions/tf_eigen.h>
 
@@ -498,7 +499,8 @@ public:
       traj_obj.setRobotTrajectoryMsg(ref_state_obj, traj_msg);
 
       // Do the actual retiming
-      trajectory_processing::IterativeParabolicTimeParameterization time_param;
+      // trajectory_processing::IterativeParabolicTimeParameterization time_param;
+      trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
       time_param.computeTimeStamps(traj_obj, velocity_scaling_factor);
 
       // Convert the retimed trajectory back into a message

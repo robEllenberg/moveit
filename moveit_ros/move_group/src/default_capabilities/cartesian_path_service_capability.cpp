@@ -42,7 +42,8 @@
 #include <moveit/move_group/capability_names.h>
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit_msgs/DisplayTrajectory.h>
-#include <moveit/trajectory_processing/iterative_time_parameterization.h>
+// #include <moveit/trajectory_processing/iterative_time_parameterization.h>
+#include <moveit/trajectory_processing/time_optimal_trajectory_generation.h>
 
 move_group::MoveGroupCartesianPathService::MoveGroupCartesianPathService()
   : MoveGroupCapability("CartesianPathService"), display_computed_paths_(true)
@@ -154,7 +155,8 @@ bool move_group::MoveGroupCartesianPathService::computeService(moveit_msgs::GetC
 
           // time trajectory
           // \todo optionally compute timing to move the eef with constant speed
-          trajectory_processing::IterativeParabolicTimeParameterization time_param;
+          // trajectory_processing::IterativeParabolicTimeParameterization time_param;
+          trajectory_processing::TimeOptimalTrajectoryGeneration time_param;
           time_param.computeTimeStamps(rt, 1.0);
 
           rt.getRobotTrajectoryMsg(res.solution);
