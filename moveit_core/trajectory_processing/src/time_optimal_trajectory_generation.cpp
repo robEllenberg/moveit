@@ -76,9 +76,9 @@ public:
     return Eigen::VectorXd::Zero(start_.size());
   }
 
-  std::list<double> getSwitchingPoints() const
+  std::vector<double> getSwitchingPoints() const
   {
-    return std::list<double>();
+    return std::vector<double>();
   }
 
   LinearPathSegment* clone() const
@@ -156,9 +156,9 @@ public:
     return -1.0 / radius * (x * cos(angle) + y * sin(angle));
   }
 
-  std::list<double> getSwitchingPoints() const
+  std::vector<double> getSwitchingPoints() const
   {
-    std::list<double> switching_points;
+    std::vector<double> switching_points;
     const double dim = x.size();
     for (unsigned int i = 0; i < dim; ++i)
     {
@@ -189,14 +189,14 @@ private:
   Eigen::VectorXd y;
 };
 
-Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : length_(0.0)
+Path::Path(const std::vector<Eigen::VectorXd>& path, double max_deviation) : length_(0.0)
 {
   if (path.size() < 2)
     return;
-  std::list<Eigen::VectorXd>::const_iterator path_iterator1 = path.begin();
-  std::list<Eigen::VectorXd>::const_iterator path_iterator2 = path_iterator1;
+  std::vector<Eigen::VectorXd>::const_iterator path_iterator1 = path.begin();
+  std::vector<Eigen::VectorXd>::const_iterator path_iterator2 = path_iterator1;
   ++path_iterator2;
-  std::list<Eigen::VectorXd>::const_iterator path_iterator3;
+  std::vector<Eigen::VectorXd>::const_iterator path_iterator3;
   Eigen::VectorXd start_config = *path_iterator1;
   while (path_iterator2 != path.end())
   {
@@ -227,12 +227,12 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 
   // Create list of switching point candidates, calculate total path length and
   // absolute positions of path segments
-  for (std::list<std::unique_ptr<PathSegment>>::iterator segment = path_segments_.begin();
+  for (std::vector<std::unique_ptr<PathSegment>>::iterator segment = path_segments_.begin();
        segment != path_segments_.end(); ++segment)
   {
     (*segment)->position_ = length_;
-    std::list<double> local_switching_points = (*segment)->getSwitchingPoints();
-    for (std::list<double>::const_iterator point = local_switching_points.begin();
+    std::vector<double> local_switching_points = (*segment)->getSwitchingPoints();
+    for (std::vector<double>::const_iterator point = local_switching_points.begin();
          point != local_switching_points.end(); ++point)
     {
       switching_points_.push_back(std::make_pair(length_ + *point, false));
@@ -247,7 +247,7 @@ Path::Path(const std::list<Eigen::VectorXd>& path, double max_deviation) : lengt
 
 Path::Path(const Path& path) : length_(path.length_), switching_points_(path.switching_points_)
 {
-  for (std::list<std::unique_ptr<PathSegment>>::const_iterator it = path.path_segments_.begin();
+  for (std::vector<std::unique_ptr<PathSegment>>::const_iterator it = path.path_segments_.begin();
        it != path.path_segments_.end(); ++it)
   {
     path_segments_.emplace_back((*it)->clone());
@@ -261,8 +261,8 @@ double Path::getLength() const
 
 PathSegment* Path::getPathSegment(double& s) const
 {
-  std::list<std::unique_ptr<PathSegment>>::const_iterator it = path_segments_.begin();
-  std::list<std::unique_ptr<PathSegment>>::const_iterator next = it;
+  std::vector<std::unique_ptr<PathSegment>>::const_iterator it = path_segments_.begin();
+  std::vector<std::unique_ptr<PathSegment>>::const_iterator next = it;
   ++next;
   while (next != path_segments_.end() && s >= (*next)->position_)
   {
@@ -293,7 +293,7 @@ Eigen::VectorXd Path::getCurvature(double s) const
 
 double Path::getNextSwitchingPoint(double s, bool& discontinuity) const
 {
-  std::list<std::pair<double, bool>>::const_iterator it = switching_points_.begin();
+  std::vector<std::pair<double, bool>>::const_iterator it = switching_points_.begin();
   while (it != switching_points_.end() && it->first <= s)
   {
     ++it;
@@ -307,7 +307,7 @@ double Path::getNextSwitchingPoint(double s, bool& discontinuity) const
   return it->first;
 }
 
-std::list<std::pair<double, bool>> Path::getSwitchingPoints() const
+std::vector<std::pair<double, bool>> Path::getSwitchingPoints() const
 {
   return switching_points_;
 }
@@ -349,8 +349,8 @@ Trajectory::Trajectory(const Path& path, const Eigen::VectorXd& max_velocity, co
   if (valid_)
   {
     // Calculate timing
-    std::list<TrajectoryStep>::iterator previous = trajectory_.begin();
-    std::list<TrajectoryStep>::iterator it = previous;
+    std::vector<TrajectoryStep>::iterator previous = trajectory_.begin();
+    std::vector<TrajectoryStep>::iterator it = previous;
     it->time_ = 0.0;
     ++it;
     while (it != trajectory_.end())
@@ -516,13 +516,13 @@ bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& 
 }
 
 // Returns true if end of path is reached
-bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double acceleration)
+bool Trajectory::integrateForward(std::vector<TrajectoryStep>& trajectory, double acceleration)
 {
   double path_pos = trajectory.back().path_pos_;
   double path_vel = trajectory.back().path_vel_;
 
-  std::list<std::pair<double, bool>> switching_points = path_.getSwitchingPoints();
-  std::list<std::pair<double, bool>>::iterator next_discontinuity = switching_points.begin();
+  std::vector<std::pair<double, bool>> switching_points = path_.getSwitchingPoints();
+  std::vector<std::pair<double, bool>>::iterator next_discontinuity = switching_points.begin();
 
   while (true)
   {
@@ -626,14 +626,14 @@ bool Trajectory::integrateForward(std::list<TrajectoryStep>& trajectory, double 
   }
 }
 
-void Trajectory::integrateBackward(std::list<TrajectoryStep>& start_trajectory, double path_pos, double path_vel,
+void Trajectory::integrateBackward(std::vector<TrajectoryStep>& start_trajectory, double path_pos, double path_vel,
                                    double acceleration)
 {
-  std::list<TrajectoryStep>::iterator start2 = start_trajectory.end();
+  std::vector<TrajectoryStep>::iterator start2 = start_trajectory.end();
   --start2;
-  std::list<TrajectoryStep>::iterator start1 = start2;
+  std::vector<TrajectoryStep>::iterator start1 = start2;
   --start1;
-  std::list<TrajectoryStep> trajectory;
+  std::vector<TrajectoryStep> trajectory;
   double slope;
   assert(start1->path_pos_ <= path_pos);
 
@@ -782,11 +782,11 @@ double Trajectory::getDuration() const
   return trajectory_.back().time_;
 }
 
-std::list<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectorySegment(double time) const
+std::vector<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectorySegment(double time) const
 {
   if (time >= trajectory_.back().time_)
   {
-    std::list<TrajectoryStep>::const_iterator last = trajectory_.end();
+    std::vector<TrajectoryStep>::const_iterator last = trajectory_.end();
     last--;
     return last;
   }
@@ -807,8 +807,8 @@ std::list<Trajectory::TrajectoryStep>::const_iterator Trajectory::getTrajectoryS
 
 Eigen::VectorXd Trajectory::getPosition(double time) const
 {
-  std::list<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
-  std::list<TrajectoryStep>::const_iterator previous = it;
+  std::vector<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
+  std::vector<TrajectoryStep>::const_iterator previous = it;
   previous--;
 
   double time_step = it->time_ - previous->time_;
@@ -824,8 +824,8 @@ Eigen::VectorXd Trajectory::getPosition(double time) const
 
 Eigen::VectorXd Trajectory::getVelocity(double time) const
 {
-  std::list<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
-  std::list<TrajectoryStep>::const_iterator previous = it;
+  std::vector<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
+  std::vector<TrajectoryStep>::const_iterator previous = it;
   previous--;
 
   double time_step = it->time_ - previous->time_;
@@ -842,8 +842,8 @@ Eigen::VectorXd Trajectory::getVelocity(double time) const
 
 Eigen::VectorXd Trajectory::getAcceleration(double time) const
 {
-  std::list<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
-  std::list<TrajectoryStep>::const_iterator previous = it;
+  std::vector<TrajectoryStep>::const_iterator it = getTrajectorySegment(time);
+  std::vector<TrajectoryStep>::const_iterator previous = it;
   previous--;
 
   double time_step = it->time_ - previous->time_;
@@ -953,7 +953,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
 
   // Have to convert into Eigen data structs and remove repeated points
   //  (https://github.com/tobiaskunz/trajectories/issues/3)
-  std::list<Eigen::VectorXd> points;
+  std::vector<Eigen::VectorXd> points;
   for (size_t p = 0; p < num_points; ++p)
   {
     robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);

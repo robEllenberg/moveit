@@ -61,7 +61,7 @@ public:
   virtual Eigen::VectorXd getConfig(double s) const = 0;
   virtual Eigen::VectorXd getTangent(double s) const = 0;
   virtual Eigen::VectorXd getCurvature(double s) const = 0;
-  virtual std::list<double> getSwitchingPoints() const = 0;
+  virtual std::vector<double> getSwitchingPoints() const = 0;
   virtual PathSegment* clone() const = 0;
 
   double position_;
@@ -73,20 +73,24 @@ protected:
 class Path
 {
 public:
-  Path(const std::list<Eigen::VectorXd>& path, double max_deviation = 0.0);
+  using SwitchingPoint = std::pair<double, bool>;
+
+
+  Path(const std::vector<Eigen::VectorXd>& path, double max_deviation = 0.0);
   Path(const Path& path);
   double getLength() const;
   Eigen::VectorXd getConfig(double s) const;
   Eigen::VectorXd getTangent(double s) const;
   Eigen::VectorXd getCurvature(double s) const;
   double getNextSwitchingPoint(double s, bool& discontinuity) const;
-  std::list<std::pair<double, bool>> getSwitchingPoints() const;
+  std::vector<SwitchingPoint> getSwitchingPoints() const;
 
 private:
   PathSegment* getPathSegment(double& s) const;
   double length_;
-  std::list<std::pair<double, bool>> switching_points_;
-  std::list<std::unique_ptr<PathSegment>> path_segments_;
+
+  std::vector<SwitchingPoint> switching_points_;
+  std::vector<std::unique_ptr<PathSegment>> path_segments_;
 };
 
 class Trajectory
@@ -134,8 +138,8 @@ private:
                                          double& before_acceleration, double& after_acceleration);
   bool getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& next_switching_point, double& before_acceleration,
                                      double& after_acceleration);
-  bool integrateForward(std::list<TrajectoryStep>& trajectory, double acceleration);
-  void integrateBackward(std::list<TrajectoryStep>& start_trajectory, double path_pos, double path_vel,
+  bool integrateForward(std::vector<TrajectoryStep>& trajectory, double acceleration);
+  void integrateBackward(std::vector<TrajectoryStep>& start_trajectory, double path_pos, double path_vel,
                          double acceleration);
   double getMinMaxPathAcceleration(double path_position, double path_velocity, bool max);
   double getMinMaxPhaseSlope(double path_position, double path_velocity, bool max);
@@ -144,20 +148,20 @@ private:
   double getAccelerationMaxPathVelocityDeriv(double path_pos);
   double getVelocityMaxPathVelocityDeriv(double path_pos);
 
-  std::list<TrajectoryStep>::const_iterator getTrajectorySegment(double time) const;
+  std::vector<TrajectoryStep>::const_iterator getTrajectorySegment(double time) const;
 
   Path path_;
   Eigen::VectorXd max_velocity_;
   Eigen::VectorXd max_acceleration_;
   unsigned int joint_num_;
   bool valid_;
-  std::list<TrajectoryStep> trajectory_;
-  std::list<TrajectoryStep> end_trajectory_;  // non-empty only if the trajectory generation failed.
+  std::vector<TrajectoryStep> trajectory_;
+  std::vector<TrajectoryStep> end_trajectory_;  // non-empty only if the trajectory generation failed.
 
   const double time_step_;
 
   mutable double cached_time_;
-  mutable std::list<TrajectoryStep>::const_iterator cached_trajectory_segment_;
+  mutable std::vector<TrajectoryStep>::const_iterator cached_trajectory_segment_;
 };
 
 class TimeOptimalTrajectoryGeneration
