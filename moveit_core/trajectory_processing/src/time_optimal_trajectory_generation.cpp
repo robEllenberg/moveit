@@ -239,8 +239,18 @@ Path::Path(const std::vector<Eigen::VectorXd>& path, double max_deviation) : len
       switching_points_.push_back(std::make_pair(length_ + *point, false));
     }
     length_ += (*segment)->getLength();
-    while (!switching_points_.empty() && switching_points_.back().first >= length_)
-      switching_points_.pop_back();
+
+    auto rev_it = switching_points_.rbegin();
+    for (; rev_it != switching_points_.rend(); ++rev_it) {
+        if (rev_it->first < length_) {
+            break;
+        }
+    }
+    if (rev_it == switching_points_.rend()) {
+        switching_points_.clear();
+    } else {
+        switching_points_.erase(rev_it.base(), switching_points_.end());
+    }
     switching_points_.push_back(std::make_pair(length_, true));
   }
   switching_points_.pop_back();
