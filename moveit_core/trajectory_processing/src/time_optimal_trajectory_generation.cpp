@@ -173,7 +173,8 @@ public:
         switching_points.push_back(switching_point);
       }
     }
-    switching_points.sort();
+    std::sort(switching_points.begin(), switching_points.end());
+
     return switching_points;
   }
 
@@ -633,7 +634,7 @@ void Trajectory::integrateBackward(std::vector<TrajectoryStep>& start_trajectory
   --start2;
   std::vector<TrajectoryStep>::iterator start1 = start2;
   --start1;
-  std::vector<TrajectoryStep> trajectory;
+  std::vector<TrajectoryStep> trajectory_rev;
   double slope;
   assert(start1->path_pos_ <= path_pos);
 
@@ -641,17 +642,18 @@ void Trajectory::integrateBackward(std::vector<TrajectoryStep>& start_trajectory
   {
     if (start1->path_pos_ <= path_pos)
     {
-      trajectory.push_front(TrajectoryStep(path_pos, path_vel));
+      trajectory_rev.push_back(TrajectoryStep(path_pos, path_vel));
       path_vel -= time_step_ * acceleration;
-      path_pos -= time_step_ * 0.5 * (path_vel + trajectory.front().path_vel_);
+      path_pos -= time_step_ * 0.5 * (path_vel + trajectory_rev.back().path_vel_);
       acceleration = getMinMaxPathAcceleration(path_pos, path_vel, false);
-      slope = (trajectory.front().path_vel_ - path_vel) / (trajectory.front().path_pos_ - path_pos);
+      slope = (trajectory_rev.back().path_vel_ - path_vel) / (trajectory_rev.back().path_pos_ - path_pos);
 
       if (path_vel < 0.0)
       {
         valid_ = false;
         ROS_ERROR_NAMED(LOGNAME, "Error while integrating backward: Negative path velocity");
-        end_trajectory_ = trajectory;
+        end_trajectory_.clear();
+        std::copy(trajectory_rev.rbegin(), trajectory_rev.rend(), std::back_inserter(end_trajectory_));
         return;
       }
     }
@@ -667,20 +669,22 @@ void Trajectory::integrateBackward(std::vector<TrajectoryStep>& start_trajectory
     const double intersection_path_pos =
         (start1->path_vel_ - path_vel + slope * path_pos - start_slope * start1->path_pos_) / (slope - start_slope);
     if (std::max(start1->path_pos_, path_pos) - EPS <= intersection_path_pos &&
-        intersection_path_pos <= EPS + std::min(start2->path_pos_, trajectory.front().path_pos_))
+        intersection_path_pos <= EPS + std::min(start2->path_pos_, trajectory_rev.back().path_pos_))
     {
       const double intersection_path_vel =
           start1->path_vel_ + start_slope * (intersection_path_pos - start1->path_pos_);
       start_trajectory.erase(start2, start_trajectory.end());
       start_trajectory.push_back(TrajectoryStep(intersection_path_pos, intersection_path_vel));
-      start_trajectory.splice(start_trajectory.end(), trajectory);
+      // Copy elements of reverse_order trajectory into the actual start trajectory
+      std::copy(trajectory_rev.rbegin(), trajectory_rev.rend(), std::back_inserter(start_trajectory));
       return;
     }
   }
 
   valid_ = false;
   ROS_ERROR_NAMED(LOGNAME, "Error while integrating backward: Did not hit start trajectory");
-  end_trajectory_ = trajectory;
+  end_trajectory_.clear();
+  std::copy(trajectory_rev.rbegin(), trajectory_rev.rend(), std::back_inserter(end_trajectory_));
 }
 
 double Trajectory::getMinMaxPathAcceleration(double path_pos, double path_vel, bool max)
