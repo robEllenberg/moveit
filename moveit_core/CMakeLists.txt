@@ -39,6 +39,7 @@ find_package(urdfdom_headers REQUIRED)
 
 find_package(catkin REQUIRED
 COMPONENTS
+  angles
   eigen_conversions
   eigen_stl_containers
   geometric_shapes
@@ -55,6 +56,7 @@ COMPONENTS
   srdfdom
   std_msgs
   trajectory_msgs
+  tf
   urdf
   visualization_msgs
   xmlrpcpp
