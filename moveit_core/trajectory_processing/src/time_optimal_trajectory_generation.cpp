@@ -194,15 +194,14 @@ Path::Path(const std::vector<Eigen::VectorXd>& path, double max_deviation) : len
 {
   if (path.size() < 2)
     return;
-  std::vector<Eigen::VectorXd>::const_iterator path_iterator1 = path.begin();
-  std::vector<Eigen::VectorXd>::const_iterator path_iterator2 = path_iterator1;
-  ++path_iterator2;
-  std::vector<Eigen::VectorXd>::const_iterator path_iterator3;
+
+  auto path_iterator1 = path.cbegin();
+  auto path_iterator2 = path_iterator1 + 1;
+
   Eigen::VectorXd start_config = *path_iterator1;
   while (path_iterator2 != path.end())
   {
-    path_iterator3 = path_iterator2;
-    ++path_iterator3;
+    auto path_iterator3 = path_iterator2 + 1;
     if (max_deviation > 0.0 && path_iterator3 != path.end())
     {
       CircularPathSegment* blend_segment =
