@@ -969,6 +969,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   // Have to convert into Eigen data structs and remove repeated points
   //  (https://github.com/tobiaskunz/trajectories/issues/3)
   std::vector<Eigen::VectorXd> points;
+  points.reserve(num_points);
   for (size_t p = 0; p < num_points; ++p)
   {
     robot_state::RobotStatePtr waypoint = trajectory.getWayPointPtr(p);
