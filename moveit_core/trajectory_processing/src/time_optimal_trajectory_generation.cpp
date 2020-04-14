@@ -479,7 +479,7 @@ bool Trajectory::getNextAccelerationSwitchingPoint(double path_pos, TrajectorySt
 bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& next_switching_point,
                                                double& before_acceleration, double& after_acceleration)
 {
-  const double step_size = 0.001;
+  const double step_size = time_step_;
   const double accuracy = EPS;
 
   bool start = false;
