@@ -886,7 +886,8 @@ TimeOptimalTrajectoryGeneration::~TimeOptimalTrajectoryGeneration()
 
 bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotTrajectory& trajectory,
                                                         const double max_velocity_scaling_factor,
-                                                        const double max_acceleration_scaling_factor) const
+                                                        const double max_acceleration_scaling_factor,
+                                                        const double optimization_timestep) const
 {
   if (trajectory.empty())
     return true;
@@ -977,7 +978,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
     for (size_t j = 0; j < num_joints; j++)
     {
       new_point[j] = waypoint->getVariablePosition(idx[j]);
-      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > 0.001)
+      if (p > 0 && std::abs(new_point[j] - points.back()[j]) > optimization_timestep)
         diverse_point = true;
     }
 
@@ -996,7 +997,7 @@ bool TimeOptimalTrajectoryGeneration::computeTimeStamps(robot_trajectory::RobotT
   }
 
   // Now actually call the algorithm
-  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, 0.001);
+  Trajectory parameterized(Path(points, path_tolerance_), max_velocity, max_acceleration, optimization_timestep);
   if (!parameterized.isValid())
   {
     ROS_ERROR_NAMED(LOGNAME, "Unable to parameterize trajectory.");
