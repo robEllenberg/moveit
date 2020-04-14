@@ -97,7 +97,7 @@ public:
   CircularPathSegment(const Eigen::VectorXd& start, const Eigen::VectorXd& intersection, const Eigen::VectorXd& end,
                       double max_deviation)
   {
-    if ((intersection - start).norm() < 0.000001 || (end - intersection).norm() < 0.000001)
+    if ((intersection - start).norm() < EPS || (end - intersection).norm() < EPS)
     {
       length_ = 0.0;
       radius = 1.0;
@@ -111,7 +111,7 @@ public:
     const Eigen::VectorXd end_direction = (end - intersection).normalized();
 
     // check if directions are divergent
-    if ((start_direction - end_direction).norm() < 0.000001)
+    if ((start_direction - end_direction).norm() < EPS)
     {
       length_ = 0.0;
       radius = 1.0;
@@ -208,7 +208,7 @@ Path::Path(const std::vector<Eigen::VectorXd>& path, double max_deviation) : len
           new CircularPathSegment(0.5 * (*path_iterator1 + *path_iterator2), *path_iterator2,
                                   0.5 * (*path_iterator2 + *path_iterator3), max_deviation);
       Eigen::VectorXd end_config = blend_segment->getConfig(0.0);
-      if ((end_config - start_config).norm() > 0.000001)
+      if ((end_config - start_config).norm() > EPS)
       {
         path_segments_.push_back(std::make_unique<LinearPathSegment>(start_config, end_config));
       }
@@ -480,7 +480,7 @@ bool Trajectory::getNextVelocitySwitchingPoint(double path_pos, TrajectoryStep& 
                                                double& before_acceleration, double& after_acceleration)
 {
   const double step_size = 0.001;
-  const double accuracy = 0.000001;
+  const double accuracy = EPS;
 
   bool start = false;
   path_pos -= step_size;
