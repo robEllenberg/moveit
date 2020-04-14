@@ -66,8 +66,11 @@ public:
     {
       ROS_DEBUG("Running '%s'", getDescription().c_str());
       TimeOptimalTrajectoryGeneration totg;
-      if (!totg.computeTimeStamps(*res.trajectory_, req.max_velocity_scaling_factor,
-                                  req.max_acceleration_scaling_factor))
+      if (!totg.computeTimeStamps(
+                  *res.trajectory_,
+                  req.max_velocity_scaling_factor,
+                  req.max_acceleration_scaling_factor,
+                  req.time_optimization_timestep_time_sec))
       {
         ROS_ERROR("Time parametrization for the solution path failed.");
         result = false;
